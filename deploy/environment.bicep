@@ -46,3 +46,4 @@ resource environment 'Microsoft.App/managedEnvironments@2022-03-01' = {
 
 output location string = location
 output environmentId string = environment.id
+output appInsightsConnectionString string = appInsights.properties.ConnectionString

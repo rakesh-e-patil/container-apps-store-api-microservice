@@ -72,12 +72,18 @@ module pythonService 'container-http.bicep' = {
     containerAppName: pythonServiceAppName
     containerImage: pythonImage
     containerPort: pythonPort
-    isPrivateRegistry: isPrivateRegistry 
+    isPrivateRegistry: isPrivateRegistry
     minReplicas: minReplicas
     containerRegistry: containerRegistry
     registryPassword: registryPassword
     containerRegistryUsername: containerRegistryUsername
     revisionMode: 'Single'
+    env: [
+      {
+        name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+        value: environment.outputs.appInsightsConnectionString
+      }
+    ]
     secrets: [
       {
         name: registryPassword
@@ -145,6 +151,12 @@ module goService 'container-http.bicep' = {
     registryPassword: registryPassword
     containerRegistryUsername: containerRegistryUsername
     revisionMode: 'Single'
+    env: [
+      {
+        name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+        value: environment.outputs.appInsightsConnectionString
+      }
+    ]
     secrets: isPrivateRegistry ? [
       {
         name: registryPassword
@@ -183,6 +195,10 @@ module nodeService 'container-http.bicep' = {
       {
         name: 'INVENTORY_SERVICE_NAME'
         value: goServiceAppName
+      }
+      {
+        name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+        value: environment.outputs.appInsightsConnectionString
       }
     ]
     secrets: [
