@@ -1,3 +1,4 @@
+const appInsights = require("applicationinsights");
 var express = require('express');
 var router = express.Router();
 const axios = require('axios').default;
@@ -11,11 +12,47 @@ const daprSidecar = `http://localhost:${daprPort}`
 /* GET users listing. */
 router.get('/', async function(req, res, next) {
 
-  var data = await axios.get(`${daprSidecar}/inventory?id=${req.query.id}`, {
-    headers: {'dapr-app-id' : `${inventoryService}`} //sets app name for service discovery
-  });
+    const client = appInsights.defaultClient;
 
-  res.send(`Inventory status for ${req.query.id}:\n${data.data}`);
+    const operation = client.startOperation(req, "Inventory Lookup");
+
+    await appInsights.wrapWithCorrelationContext(async () => {
+
+        const span = client.startDependency({
+            target: inventoryService,
+            name: "Inventory Service Call",
+            data: `/inventory?id=${req.query.id}`,
+            dependencyTypeName: "HTTP"
+        });
+
+        try {
+
+            const data = await axios.get(
+                `${daprSidecar}/inventory?id=${req.query.id}`,
+                {
+                    headers: {
+                        'dapr-app-id': inventoryService
+                    }
+                }
+            );
+
+            span.success = true;
+            client.trackDependency(span);
+
+            res.send(`Inventory status for ${req.query.id}:\n${data.data}`);
+
+        } catch(err){
+
+            span.success = false;
+            client.trackDependency(span);
+
+            client.trackException({
+                exception: err
+            });
+
+            next(err);
+        }
+
+    }, operation.context);
 });
-
 module.exports = router;

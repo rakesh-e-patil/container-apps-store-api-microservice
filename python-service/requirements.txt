@@ -3,3 +3,8 @@ flask_cors
 dapr
 dapr-ext-grpc
 dapr-ext-fastapi
+azure-monitor-opentelemetry
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation-flask
+opentelemetry-instrumentation-requests
